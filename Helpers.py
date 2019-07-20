@@ -23,6 +23,7 @@ def read_images(path):
 
 
 def load_images_from_path(path):
+    """load bgr imgs into rgb?"""
     imgs = []
     for p in tqdm(path):
         image = cv2.cvtColor(cv2.imread(p), cv2.COLOR_BGR2RGB)

@@ -1,8 +1,9 @@
 import os
+import random
+from os.path import join, split
+
 import cv2
 import numpy as np
-from os.path import join, split
-import random
 
 
 def convert(size, box):
@@ -20,10 +21,16 @@ def convert(size, box):
 
 
 def is_small_object(bbox, thresh):
-    if bbox[0] * bbox[1] <= thresh:
-        return True
-    else:
-        return False
+    """check if the given bbox is small object
+
+    Arguments:
+        bbox {2d tuple} -- h, w of bbox
+        thresh {float} -- given threshold
+
+    Returns:
+        bool -- if is small object
+    """
+    return bbox[0] * bbox[1] <= thresh
 
 
 def read_label_txt(label_dir):
@@ -34,19 +41,15 @@ def read_label_txt(label_dir):
     return labels
 
 
-def load_txt_label(label_dir):
-    return np.loadtxt(label_dir, dtype=str)
+def load_txt_label(label_txt):
+    return np.loadtxt(label_txt, dtype=str)
 
 
 def load_txt_labels(label_dir):
-    labels = []
-    for l in label_dir:
-        la = load_txt_label(l)
-        labels.append(la)
-    return labels
+    return [load_txt_label(label) for label in label_dir]
 
 
-def check_dir(dir):
+def ensure_dir_exists(dir):
     if not os.path.exists(dir):
         os.makedirs(dir)
 
@@ -79,7 +82,7 @@ def draw_annotation_to_image(img, annotation, save_img_dir):
 def bbox_iou(box1, box2):
     cl, b1_x1, b1_y1, b1_x2, b1_y2 = box1
     cl, b2_x1, b2_y1, b2_x2, b2_y2 = box2
-    # get the corrdinates of the intersection rectangle
+    # get the coordinates of the intersection rectangle
     inter_rect_x1 = max(b1_x1, b2_x1)
     inter_rect_y1 = max(b1_y1, b2_y1)
     inter_rect_x2 = min(b1_x2, b2_x2)
@@ -99,6 +102,14 @@ def bbox_iou(box1, box2):
 
 
 def norm_sampling(search_space):
+    """Randomly sample bboxes
+
+    Arguments:
+        search_space -- 4 points range of search
+
+    Returns:
+        center of new boxes
+    """
     search_x_left, search_y_left, search_x_right, search_y_right = search_space
     new_bbox_x_center = random.randint(search_x_left, search_x_right)
     new_bbox_y_center = random.randint(search_y_left, search_y_right)
@@ -113,7 +124,7 @@ def sampling_new_bbox_center_point(img_shape, bbox):
     # sampling space
     height, width, nc = img_shape
     cl, x_left, y_left, x_right, y_right = bbox
-    bbox_w, bbox_h = x_right - x_left, y_right - y_left
+    # bbox_w, bbox_h = x_right - x_left, y_right - y_left
     # left top
     if x_left <= width / 2:
         search_x_left, search_y_left, search_x_right, search_y_right = width * 0.6, height / 2, width * 0.75, height * 0.75
@@ -129,20 +140,26 @@ def random_add_patches(bbox, rescale_boxes, shape, paste_number, iou_thresh):
     cl, x_left, y_left, x_right, y_right = bbox
     bbox_w, bbox_h = x_right - x_left, y_right - y_left
     center_search_space = sampling_new_bbox_center_point(shape, bbox)
-    success_num = 0
+    n_success = 0
     new_bboxes = []
-    while success_num < paste_number:
+    while n_success < paste_number:
         new_bbox_x_center, new_bbox_y_center = norm_sampling(center_search_space)
-        new_bbox_x_left, new_bbox_y_left, new_bbox_x_right, new_bbox_y_right = new_bbox_x_center - 0.5 * bbox_w, new_bbox_y_center - 0.5 * bbox_h, new_bbox_x_center + 0.5 * bbox_w, new_bbox_y_center + 0.5 * bbox_h
-        new_bbox = [cl, int(new_bbox_x_left), int(new_bbox_y_left), int(new_bbox_x_right), int(new_bbox_y_right)]
+        new_bbox_x_left, new_bbox_y_left, new_bbox_x_right, new_bbox_y_right = new_bbox_x_center - 0.5 * \
+            bbox_w, new_bbox_y_center - 0.5 * bbox_h, new_bbox_x_center + 0.5 * bbox_w, new_bbox_y_center + 0.5 * bbox_h
+        new_bbox = [
+            cl,
+            int(new_bbox_x_left),
+            int(new_bbox_y_left),
+            int(new_bbox_x_right),
+            int(new_bbox_y_right)]
         ious = [bbox_iou(new_bbox, bbox_t) for bbox_t in rescale_boxes]
-        if max(ious) <= iou_thresh:
-            # for bbox_t in rescale_boxes:
-            # iou =  bbox_iou(new_bbox[1:],bbox_t[1:])
-            # if(iou <= iou_thresh):
-            success_num += 1
-            temp.append(new_bbox)
-            new_bboxes.append(new_bbox)
-        else:
+        if max(ious) > iou_thresh:
             continue
+        # for bbox_t in rescale_boxes:
+        # iou =  bbox_iou(new_bbox[1:],bbox_t[1:])
+        # if(iou <= iou_thresh):
+        n_success += 1
+        temp.append(new_bbox)
+        new_bboxes.append(new_bbox)
+
     return new_bboxes

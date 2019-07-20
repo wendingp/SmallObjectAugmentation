@@ -60,3 +60,6 @@
 # mkdocs documentation
 # mypy
 # Pyre type checker
+SmallObjectAugmentation.iml
+.vscode/
+.idea/
