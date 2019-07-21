@@ -63,3 +63,6 @@
 SmallObjectAugmentation.iml
 .vscode/
 .idea/
+__pycache__/aug.cpython-37.pyc
+save/2018-11-03_07_45_09_1_augment.jpg
+save/2018-11-03_07_45_09_1_augment.txt
