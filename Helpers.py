@@ -1,9 +1,10 @@
 import glob
-import cv2 as cv2
-import numpy as np
-import matplotlib.pyplot as plt
 # import random
 import math
+
+import cv2 as cv2
+import matplotlib.pyplot as plt
+import numpy as np
 from tqdm import tqdm
 
 

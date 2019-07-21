@@ -7,8 +7,8 @@ import numpy as np
 
 
 def convert(size, box):
-    dw = 1. / (size[0])
-    dh = 1. / (size[1])
+    dw = 1. / size[0]
+    dh = 1. / size[1]
     x = (box[0] + box[1]) / 2.0 - 1
     y = (box[2] + box[3]) / 2.0 - 1
     w = box[1] - box[0]
@@ -101,8 +101,8 @@ def bbox_iou(box1, box2):
     return iou
 
 
-def norm_sampling(search_space):
-    """Randomly sample bboxes
+def uniform_sample(search_space):
+    """Uniformly sample bboxes
 
     Arguments:
         search_space -- 4 points range of search
@@ -122,7 +122,7 @@ def flip_bbox(roi):
 
 def sampling_new_bbox_center_point(img_shape, bbox):
     # sampling space
-    height, width, nc = img_shape
+    height, width, n_channels = img_shape
     cl, x_left, y_left, x_right, y_right = bbox
     # bbox_w, bbox_h = x_right - x_left, y_right - y_left
     # left top
@@ -143,15 +143,10 @@ def random_add_patches(bbox, rescale_boxes, shape, paste_number, iou_thresh):
     n_success = 0
     new_bboxes = []
     while n_success < paste_number:
-        new_bbox_x_center, new_bbox_y_center = norm_sampling(center_search_space)
-        new_bbox_x_left, new_bbox_y_left, new_bbox_x_right, new_bbox_y_right = new_bbox_x_center - 0.5 * \
-            bbox_w, new_bbox_y_center - 0.5 * bbox_h, new_bbox_x_center + 0.5 * bbox_w, new_bbox_y_center + 0.5 * bbox_h
-        new_bbox = [
-            cl,
-            int(new_bbox_x_left),
-            int(new_bbox_y_left),
-            int(new_bbox_x_right),
-            int(new_bbox_y_right)]
+        new_bbox_x_center, new_bbox_y_center = uniform_sample(center_search_space)
+        new_bbox_x_left, new_bbox_y_left, new_bbox_x_right, new_bbox_y_right = int(new_bbox_x_center - 0.5 * bbox_w), int(
+            new_bbox_y_center - 0.5 * bbox_h), int(new_bbox_x_center + 0.5 * bbox_w), int(new_bbox_y_center + 0.5 * bbox_h)
+        new_bbox = [cl, new_bbox_x_left, new_bbox_y_left, new_bbox_x_right, new_bbox_y_right]
         ious = [bbox_iou(new_bbox, bbox_t) for bbox_t in rescale_boxes]
         if max(ious) > iou_thresh:
             continue

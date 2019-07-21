@@ -25,11 +25,11 @@ def convert_all_boxes(shape, anno_infos, yolo_label_txt_dir):
         label_file.write(str(target_id) + " " + " ".join([str(a) for a in bb]) + '\n')
 
 
-def save_crop_image(save_crop_base_dir, image_dir, idx, roi):
-    crop_save_dir = join(save_crop_base_dir, find_str(image_dir))
-    ensure_dir_exists(crop_save_dir)
-    crop_img_save_dir = join(crop_save_dir, basename(image_dir)[:-3] + '_crop_' + str(idx) + '.jpg')
-    cv2.imwrite(crop_img_save_dir, roi)
+# def save_crop_image(save_crop_base_dir, image_dir, idx, roi):
+#     crop_save_dir = join(save_crop_base_dir, find_str(image_dir))
+#     ensure_dir_exists(crop_save_dir)
+#     crop_img_save_dir = join(crop_save_dir, basename(image_dir)[:-3] + '_crop_' + str(idx) + '.jpg')
+#     cv2.imwrite(crop_img_save_dir, roi)
 
 
 def copy_small_objects(image_dir, label_dir, save_base_dir, save_crop_base_dir,
@@ -44,7 +44,7 @@ def copy_small_objects(image_dir, label_dir, save_base_dir, save_crop_base_dir,
     # save_annotation_dir = join(save_annotation_base_dir,find_str(image_dir))
     # check_dir(save_annotation_dir)
     # save_img_dir = join(save_annotation_dir,basename(image_dir))
-    # draw_annotation_to_image(image,rescale_labels,save_img_dir) #validate
+    # draw_annotation_to_image(image, rescale_labels, save_img_dir)  # validate
     for rescale_label in rescale_labels:
         all_boxes.append(rescale_label)
         rescale_label_height, rescale_label_width = rescale_label[4] - \
@@ -52,7 +52,7 @@ def copy_small_objects(image_dir, label_dir, save_base_dir, save_crop_base_dir,
         if is_small_object((rescale_label_height, rescale_label_width),
                            thresh=64 * 64) and rescale_label[0] == '1':
             roi = image[rescale_label[2]:rescale_label[4], rescale_label[1]:rescale_label[3]]
-            # save_crop_image(save_crop_base_dir,image_dir,idx,roi)
+            # save_crop_image(save_crop_base_dir, image_dir, idx, roi)
             new_bboxes = random_add_patches(
                 rescale_label, rescale_labels, image.shape, paste_number=2, iou_thresh=0.2)
             count = 0

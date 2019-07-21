@@ -5,7 +5,7 @@ from tqdm import tqdm
 
 from aug import copy_small_objects
 from Helpers import replace_labels
-from util import *
+from util import ensure_dir_exists
 
 
 def main():
